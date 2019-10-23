@@ -28,17 +28,15 @@ date_format = "Jan 2006"
   Responsibilities include:
   
   * Analysing
-  * Modelling
-  * Deploying
   """
 
 [[experience]]
-  title = "Professor"
-  company = "University X"
+  title = "Research Fellow"
+  company = "University of Edinburgh"
   company_url = ""
-  location = "California"
+  location = "Scotland"
   date_start = "2016-01-01"
   date_end = "2016-12-31"
-  description = """Taught electronic engineering and researched semiconductor physics."""
+  description = """Stats."""
 
 +++
