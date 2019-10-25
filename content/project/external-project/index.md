@@ -1,12 +1,12 @@
 ---
-title: External Project
+title: Understanding Inequalities
 summary: An example of linking directly to an external project website using `external_link`.
 tags:
-- Demo
-date: "2016-04-27T00:00:00Z"
+- ""
+date: ""
 
 # Optional external URL for project (replaces project detail page).
-external_link: http://example.org
+external_link: https://www.understanding-inequalities.ac.uk
 
 image:
   caption: Photo by Toa Heftiba on Unsplash

@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Nelson Bighetti
+name: Ben Matthews
 
 # Username (this should match the folder name)
 authors:
@@ -32,9 +32,6 @@ education:
   - course: MSc in Social Research
     institution: University of Edinburgh
     year: 2012
-  - course: BA in Politics and Modern History
-    institution: University of Manchester
-    year: 2008
 
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
@@ -69,4 +66,4 @@ user_groups:
 - Visitors
 ---
 
-Ben Matthews is a Research Fellow in criminology.
+Ben Matthews is a Research Fellow in Criminology.
