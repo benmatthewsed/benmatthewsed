@@ -34,6 +34,6 @@ date_format = "Jan 2006"
   location = ""
   date_start = "2016-11-01"
   date_end = "2016-06-30"
-  description = """"
+  description = """"""
 
 +++
