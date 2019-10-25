@@ -15,7 +15,7 @@ role: Research Fellow in Criminology
 # Organizations/Affiliations
 organizations:
 - name: University of Edinburgh
-  url: ""
+  url: "https://www.law.ed.ac.uk/people/dr-ben-matthews"
 
 # Short bio (displayed in user profile at end of posts)
 bio: My research interests include inequality, crime, statistical analysis, data visualization.
@@ -66,4 +66,6 @@ user_groups:
 - Visitors
 ---
 
-Ben Matthews is a Research Fellow in Criminology.
+Ben Matthews is a quantitative social researcher interested in understanding the recent crime drop in Scotland, and particularly how it relates to inequalities in convictions across characteristics such as age, sex and income. Methodologically, Ben has worked extensively with administrative data, longitudinal methods and data visualization.
+
+Ben completed his PhD in 2017 at the University of Edinburgh, analysing conviction trends in Scotland between 1989 and 2011. Before joining the Understanding Inequalities team, Ben was a Research Associate at the Administrative Data Research Centre – Scotland, working on a number of projects in criminology and social work using linked administrative datasets.
