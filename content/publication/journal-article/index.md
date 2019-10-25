@@ -1,5 +1,5 @@
 ---
-title: "An example journal article"
+title: "Rethinking one of criminology’s ‘brute facts’: The age–crime curve and the crime drop in Scotland"
 authors:
 - admin
 - Jon Minton
@@ -16,13 +16,13 @@ publishDate: "2017-01-01T00:00:00Z"
 publication_types: ["2"]
 
 # Publication name and optional abbreviated publication name.
-publication: "*Journal of Source Themes, 1*(1)"
+publication: "*European Journal of Criminology*(1)"
 publication_short: ""
 
-abstract: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum. Sed ac faucibus dolor, scelerisque sollicitudin nisi. Cras purus urna, suscipit quis sapien eu, pulvinar tempor diam. Quisque risus orci, mollis id ante sit amet, gravida egestas nisl. Sed ac tempus magna. Proin in dui enim. Donec condimentum, sem id dapibus fringilla, tellus enim condimentum arcu, nec volutpat est felis vel metus. Vestibulum sit amet erat at nulla eleifend gravida.
+abstract: Examining annual variation in the age–crime curve as a way to better understand the recent crime drop, this paper explores how the age distribution of convicted offending changed for men and women in Scotland between 1989 and 2011. This analysis employs shaded contour plots as a method of visualizing annual change in the age–crime curve. Similar to recent findings from the USA, we observed falling rates of convicted offending for young people, primarily owing to lower rates of convicted offending for young men. In contrast to the US literature we also find increases in the rate of convicted offending for those in their mid-twenties to mid-forties, which are relatively greater for women than men. Analysis of annual change shows different phases in the progression of these trends, with falls in prevalence during the 1990s reflecting lower rates of convictions for acquisitive crime, but falls between 2007 and 2011 being spread across multiple crime types. Explanations of the crime drop in Scotland and elsewhere must be able to account for different patterns of change across age, sex, crime type and time.
 
 # Summary. An optional shortened abstract.
-summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis posuere tellus ac convallis placerat. Proin tincidunt magna sed ex sollicitudin condimentum.
+summary: Jon Minton and I use data visualization to show the dramatic change in the age distribution of people convicted in Scotland between 1989 and 2011.
 
 tags:
 - Source Themes
@@ -30,7 +30,7 @@ featured: false
 
 # links:
 # - name: ""
-#   url: ""
+#   url: "https://journals.sagepub.com/doi/full/10.1177/1477370817731706"
 url_pdf: 
 url_code: ''
 url_dataset: ''
@@ -43,7 +43,7 @@ url_video: ''
 # Featured image
 # To use, add an image named `featured.jpg/png` to your page's folder. 
 image:
-  caption: 'Image credit: [**Unsplash**](https://unsplash.com/photos/jdD8gXaTZsc)'
+  caption: ''
   focal_point: ""
   preview_only: false
 
@@ -59,7 +59,7 @@ projects: []
 #   Simply enter your slide deck's filename without extension.
 #   E.g. `slides: "example"` references `content/slides/example/index.md`.
 #   Otherwise, set `slides: ""`.
-slides: example
+slides: ""
 ---
 
 {{% alert note %}}

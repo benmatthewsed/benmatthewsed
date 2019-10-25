@@ -18,11 +18,13 @@ organizations:
   url: "https://www.law.ed.ac.uk/people/dr-ben-matthews"
 
 # Short bio (displayed in user profile at end of posts)
-bio: My research interests include inequality, crime, statistical analysis, data visualization.
+bio: Ben is a Research Fellow in Criminology at the University of Edinburgh.
 
 interests:
 - Crime
+- R
 - Data visualization
+- Statistical modelling
 
 education:
   courses:
