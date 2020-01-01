@@ -1,0 +1,116 @@
+---
+title: Average Marginal Effects for Multinomial Logistic Regression in R
+author: ''
+date: '2020-01-01'
+slug: marginal_effects_multinomial_logistic_regression_r
+categories: []
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-01-01T11:53:32Z'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<p>Multinomial logistic regression is a commonly used statistical technique when you have multiple categorical outcomes. As per Richard McElreath’ Statistical Rethinking, parameter estimates from multinomial models can be real hard to understand - the values of the covariates only relate to comparisons with the reference class, and as with any logistic model, have to be interpreted in the context of the other indepdendent variables in the model.</p>
+<p>One way to understand parameters from these models is through their marginal effects. Marginal effects come in different flavours, and Thomas Leeper has written the {margins} package to port (most of) Stata’s capacity to estimate <em>average</em> marginal effectd (AMEs) in R. Leeper explains these really well in the package vignette, but in simple terms to calculate the AME for a given (binary) covariate, you take your dataset and then create two counterfactual datasets, one where every person you’ve observed has the covariate (or rather, has that covarate set to 1) and another where they do not have that covarate (it’s set to 0). Crucially, all the other variables stay at their observed values for every person. You can then get a prediction for your outcome for each of these two datasets and simply substract the estimating for having the covariate from the estimate for not having it. Taking the average of these differences gives you the average marginal effect. (It works slightly differently for continuous variables though) The nice feature of this process is that it preserves the distribution of the other covariates in the dataset when calculating the AMEs. This, however, ties the interpretation of the results even more closely to the data you’ve observed - if the distribution of the other covariates changed (for example, in next year’s survey) but the model parameters did not change, you would get different AMEs from the same model.</p>
+<p>The {margins} package does a great job of calculating marginal effects out of the box, but one slight snag is that it does so only for one level of the dependent variable at a time. It’s easy enough though to loop through each level of the dependent variable using the <code>map</code> function from {purrr} to calculate AMEs for its levels.</p>
+<p>First load the packages we’ll need.</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ──────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.2.1     ✔ purrr   0.3.3
+## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
+## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
+## ✔ readr   1.3.1     ✔ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ─────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(nnet)
+library(margins)
+library(haven)</code></pre>
+<p>Then we can load in some data. UCLA has an excellent worked example of multinomial logistic regression (amongst other things), so we’ll use their dataset.</p>
+<pre class="r"><code># I&#39;m using data from this worked example
+# https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/
+
+df &lt;- read_dta(&quot;https://stats.idre.ucla.edu/stat/data/hsbdemo.dta&quot;)</code></pre>
+<p>UCLA describe the dataset as
+&gt; Entering high school students make program choices among general program, vocational program and academic program. Their choice might be modeled using their writing score and their social economic status.</p>
+<p>For sake of simplicity, lets remove some of the variables in the dataset and recode all the independent variables so they’re binary.</p>
+<pre class="r"><code># data wrangling ----------------------------------------------------------
+
+# remove some variables for sake of simplicity, and
+# recode everything to binary variables
+
+df &lt;- 
+  df %&gt;% 
+  select(id:prog, honors) %&gt;% 
+  mutate_at(vars(female:honors), as.numeric) %&gt;% 
+  mutate(ses = if_else(ses &gt; 1, 2, 1)) %&gt;% 
+  mutate_at(vars(female:honors), as.factor)</code></pre>
+<p>Now let’s fit the model using {nnet}.</p>
+<pre class="r"><code># fit the model -----------------------------------------------------------
+
+model_data &lt;- df
+
+mod_nnet &lt;- 
+  multinom(data = model_data, 
+      prog ~ 1 
+      + female
+      + ses
+      + schtyp
+      + honors 
+      )</code></pre>
+<pre><code>## # weights:  18 (10 variable)
+## initial  value 219.722458 
+## iter  10 value 188.083726
+## final  value 188.067590 
+## converged</code></pre>
+<p>Now we have our saved model in the object <code>mod_nnet</code>. To calculate the AMEs we can use the <code>marginal_effects</code> function from {margins}. This is a stripped down version of the packages’ main function <code>margins</code>, which does not try to calculate standard errors for the marginal effects (these are not defined for {nnet} models. We’ll talk about how to calculate bootstrap standard errors for these AMEs in another post). To get the desired structure for the results we create a user defined function which lets us explicitly specify the category of the dependent variable we want to calculate AMEs for (<code>marginal_effects</code> will calculate AMEs for all the covariates). This function references the model object <code>mod_nnet</code> which exists in the global environment. This works because we just created this object a second ago, and because of R’s scoping rules ( <strong>reference advanced R</strong> ) R will look for objects within the global environment if it doesn’t find the object within the function environment. This allows us to fit the model once and then reference it for every iteration of the marginal effects.</p>
+<pre class="r"><code>marg &lt;- function(classes){
+  
+  margins::marginal_effects(mod_nnet, category = classes)
+  
+}</code></pre>
+<p>We then extract the levels of the dependent variable from the dataset (there’s probably a neater way of doing this).</p>
+<pre class="r"><code>classes &lt;- 
+  model_data %&gt;% 
+  count(prog) %&gt;% 
+  pull(prog)</code></pre>
+<p>We then make a dataframe of our factor levels sttored in a variable <code>.category</code> and then use the <code>map</code> function to pass each of these factors levels to our <code>marg</code> function. Wrapping this process in <code>mutate</code> will give us a nested dataframe with three 200 x 4 dataframes: one set of marginal effects for each observation (there were 200 in the original dataset) for each of our four covariates, for each of the three levels of the dependent variable.</p>
+<pre class="r"><code>classes &lt;- 
+  tibble(
+  .category = classes
+  ) %&gt;% 
+  mutate(marginals = map(.category, marg))</code></pre>
+<p>Now we can use the standard tools for working on dataframes to just calculate the average marginal effect for each each variable and each category. First we <code>unnest</code> the dataframe, then use <code>group_by</code> and ’<code>summarise_all</code> to calculate the AME for each level of the dependent variable for each covariate.</p>
+<pre class="r"><code># overall AME
+ame &lt;- 
+  classes %&gt;% 
+  unnest(col = c(marginals)) %&gt;% 
+  group_by(.category) %&gt;% 
+  summarise_all(., mean)</code></pre>
+<p>With a last bit of wrangling to convert the dataset into a longer format that <code>ggplot2</code> will like, we can the plot our results:</p>
+<pre class="r"><code>ame %&gt;% 
+  gather(iv, ame, 2:5) %&gt;% 
+  ggplot(aes(
+  y = fct_reorder(iv, ame),
+  x = ame
+)) +
+  geom_vline(xintercept = 0, linetype = &quot;dashed&quot;) +
+  geom_point(
+  ) +
+  facet_wrap(vars(.category),
+             ncol = 1,
+             strip.position = &quot;right&quot;
+  ) +
+  labs(y = &quot;Covariate&quot;,
+       x = &quot;AME&quot;)</code></pre>
+<p><img src="/post/2020-01-01-marginal_effects_multinomial_logistic_regression_r_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>So there you have it!</p>
