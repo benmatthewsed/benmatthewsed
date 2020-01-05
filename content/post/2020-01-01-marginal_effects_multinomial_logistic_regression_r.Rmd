@@ -1,7 +1,7 @@
 ---
 title: Average Marginal Effects for Multinomial Logistic Regression in R
 author: ''
-date: '2020-01-01'
+date: '2020-01-05'
 slug: marginal_effects_multinomial_logistic_regression_r
 categories: []
 tags: []
@@ -17,12 +17,15 @@ image:
 projects: []
 ---
 
-Multinomial logistic regression is a commonly used statistical technique when you have multiple categorical outcomes. As per Richard McElreath' Statistical Rethinking, parameter estimates from multinomial models can be real hard to understand - the values of the covariates only relate to comparisons with the reference class, and as with any logistic model, have to be interpreted in the context of the other indepdendent variables in the model.
+Multinomial logistic regression is a commonly used statistical technique when you have an outcome variable with multiple, unordered, categories. As per Richard McElreath' [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/), parameter estimates from multinomial models can be really hard to understand. the values of the covariates only relate to comparisons with the reference class, and as with any logistic model, have to be interpreted in the context of the other independent variables in the model.
 
-One way to understand parameters from these models is through their marginal effects. Marginal effects come in different flavours, and Thomas Leeper has written the {margins} package to port (most of) Stata's capacity to estimate _average_ marginal effectd (AMEs) in R. Leeper explains these really well in the package vignette, but in simple terms to calculate the AME for a given (binary) covariate, you take your dataset and then create two counterfactual datasets, one where every person you've observed has the covariate (or rather, has that covarate set to 1) and another where they do not have that covarate (it's set to 0). Crucially, all the other variables stay at their observed values for every person. You can then get a prediction for your outcome for each of these two datasets and simply substract the estimating for having the covariate from the estimate for not having it. Taking the average of these differences gives you the average marginal effect. (It works slightly differently for continuous variables though) The nice feature of this process is that it preserves the distribution of the other covariates in the dataset when calculating the AMEs. This, however, ties the interpretation of the results even more closely to the data you've observed - if the distribution of the other covariates changed (for example, in next year's survey) but the model parameters did not change, you would get different AMEs from the same model. 
+One way to understand parameters from these models is through their marginal effects. Marginal effects come in different flavours, and Thomas Leeper has written the `{margins}` package to port (most of) Stata's capacity to estimate _average_ marginal effects (AMEs) in `R`. Leeper explains these really well in the [package vignette](https://thomasleeper.com/margins/articles/Introduction.html), but in simple terms, to calculate the AME for a given (binary[^1]) covariate, you: First, take your dataset and then create two counterfactual datasets, one where every person you've observed has the covariate (or rather, has that covarate set to 1) and another where they do not have that covarate (it's set to 0). Crucially, all the other variables stay at their observed values for every person. Second, you can then get a prediction for your outcome for each of these two datasets and simply substract the estimating for having the covariate from the estimate for not having it. Third, taking the average of these differences gives you the average marginal effect (AME).  The nice feature of this process is that it preserves the distribution of the other covariates in the dataset when calculating the AMEs. This, however, ties the interpretation of the results even more closely to the data you've observed - if the distribution of the other covariates changed (for example, in next year's survey) but the model parameters did not change, you would get different AMEs from the same model. 
 
-The {margins} package does a great job of calculating marginal effects out of the box, but one slight snag is that it does so only for one level of the dependent variable at a time. It's easy enough though to loop through each level of the dependent variable using the `map` function from {purrr} to calculate AMEs for its levels.
+[^1]: The process works _slightly differently_ for continuous variables though.
 
+The `{margins}` package does a great job of calculating marginal effects out of the box, but one slight snag is that it does so only for one level of the dependent variable at a time when the outcome is multinomial. It's easy enough though to loop through each level of the dependent variable using the `map` function from `{purrr}` to calculate AMEs for all levels of a multinomial outcome variable.
+
+_We can show this with a worked example._
 
 First load the packages we'll need.
 
@@ -34,7 +37,7 @@ library(haven)
 
 ```
 
-Then we can load in some data. UCLA has an excellent worked example of multinomial logistic regression (amongst other things), so we'll use their dataset.
+Then we can load in some data. UCLA has an excellent [worked example of multinomial logistic regression](https://stats.idre.ucla.edu/r/dae/multinomial-logistic-regression/) (amongst other things), so we'll use their dataset.
 
 ```{r}
 # I'm using data from this worked example
@@ -44,9 +47,18 @@ df <- read_dta("https://stats.idre.ucla.edu/stat/data/hsbdemo.dta")
 
 ```
 
-UCLA describe the dataset as
+UCLA describe the dataset as:
+
 > Entering high school students make program choices among general program, vocational program and academic program. Their choice might be modeled using their writing score and their social economic status.
 
+
+It has 200 observations and a bunch of variables.
+
+```{r}
+
+glimpse(df)
+
+```
 
 For sake of simplicity, lets remove some of the variables in the dataset and recode all the independent variables so they're binary.
 
@@ -65,7 +77,7 @@ df <-
 
 ```
 
-Now let's fit the model using {nnet}.
+Now let's fit a model using `{nnet}`. This isn't how you'd want to proceed if trying to understand this dataset for real (for example, comparing model fit with a null model etc.)
 
 ```{r}
 
@@ -76,8 +88,8 @@ model_data <- df
 
 mod_nnet <- 
   multinom(data = model_data, 
-      prog ~ 1 
-      + female
+      prog ~ 1 # outcome variable with an intercept
+      + female # one dependent variable
       + ses
       + schtyp
       + honors 
@@ -85,7 +97,9 @@ mod_nnet <-
 
 ```
 
-Now we have our saved model in the object `mod_nnet`. To calculate the AMEs we can use the `marginal_effects` function from {margins}. This is a stripped down version of the packages' main function `margins`, which does not try to calculate standard errors for the marginal effects (these are not defined for {nnet} models. We'll talk about how to calculate bootstrap standard errors for these AMEs in another post). To get the desired structure for the results we create a user defined function which lets us explicitly specify the category of the dependent variable we want to calculate AMEs for (`marginal_effects` will calculate AMEs for all the covariates). This function references the model object `mod_nnet` which exists in the global environment. This works because we just created this object a second ago, and because of R's scoping rules ( __reference advanced R__ ) R will look for objects within the global environment if it doesn't find the object within the function environment. This allows us to fit the model once and then reference it for every iteration of the marginal effects.
+Now we have our saved model in the object `mod_nnet`. To calculate the AMEs we can use the `marginal_effects` function from `{margins}`. This is a stripped down version of the packages' main function `margins`, which does not try to calculate standard errors for the marginal effects (these are not defined for `{nnet}` models. We'll talk about how to calculate bootstrap standard errors for these AMEs in another post). To get the desired structure for the results we create a user defined function which lets us explicitly specify the category of the dependent variable we want to calculate AMEs for, and `marginal_effects` will calculate AMEs for all the covariates. 
+
+
 
 
 ```{r}
@@ -98,7 +112,9 @@ marg <- function(classes){
 
 ```
 
-We then extract the levels of the dependent variable from the dataset (there's probably a neater way of doing this).
+As an aside, this function references the model object `mod_nnet` which exists in the global environment. This function will only work because we just created this object a second ago, and because of R's [scoping rules](https://adv-r.hadley.nz/functions.html#lexical-scoping) R will look for objects within the global environment if it doesn't find the object within the function environment. This allows us to fit the model once and then reference it for every iteration of the marginal effects.
+
+We then extract the levels of the dependent variable from the dataset (there's probably a neater way of doing this, but hey this works).
 
 ```{r}
 
@@ -109,7 +125,7 @@ classes <-
 
 ```
 
-We then make a dataframe of our factor levels sttored in a variable `.category` and then use the `map` function to pass each of these factors levels to our `marg` function. Wrapping this process in `mutate` will give us a nested dataframe with three 200 x 4 dataframes: one set of marginal effects for each observation (there were 200 in the original dataset) for each of our four covariates, for each of the three levels of the dependent variable.
+Now we can finally apply our wrapper function `marg` to each level of our dependent variable. First we make a dataframe of our factor levels sttored in a variable `.category` and then use the `map` function to pass each of these factors levels to `marg`. By wrapping this whole process in `mutate` will give us a [nested dataframe](https://r4ds.had.co.nz/many-models.html) with three 200 x 4 dataframes: one set of marginal effects for each observation (there were 200 in the original dataset) for each of our four covariates, for each of the three levels of the dependent variable.
 
 ```{r}
 
@@ -121,7 +137,7 @@ classes <-
 
 ```
 
-Now we can use the standard tools for working on dataframes to just calculate the average marginal effect for each each variable and each category. First we `unnest` the dataframe, then use `group_by` and '`summarise_all` to calculate the AME for each level of the dependent variable for each covariate.
+Now we can use the standard tools for working on dataframes to just calculate the average marginal effect for each each variable and each category. First we `unnest` the dataframe, then use `group_by` and `summarise_all` to calculate the AME for each level of the dependent variable for each covariate.
 
 ```{r}
 
@@ -156,5 +172,4 @@ ame %>%
 
 ```
 
-
-So there you have it!
+These results are on the probability scale, so we can say that being in category 2 of ses rather than category 1 of ses decreases the probability of being in category 1 by around 15 percentage points for the people in this dataset. The inverse of this is that having ses category 2 increases the probability of being in category 2 by just over 10 percentage points, and catgory 3 by around 4 percentage points.
